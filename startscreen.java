@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.*;
 
 public class startscreen extends JFrame {
 
@@ -78,6 +79,25 @@ public class startscreen extends JFrame {
         root.setBackground(Color.WHITE);
         root.add(topBar, BorderLayout.NORTH);
         root.add(main, BorderLayout.CENTER);
+
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        footerPanel.setBackground(Color.WHITE);
+        footerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        JLabel footerLabel = new JLabel("🔗 GitHub: @jigyasaphogat");
+        footerLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        footerLabel.setForeground(new Color(140, 140, 140));
+        footerLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        footerLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    java.awt.Desktop.getDesktop().browse(new java.net.URI("https://github.com/jigyasaphogat"));
+                } catch (Exception ex) {}
+            }
+        });
+        footerPanel.add(footerLabel);
+        root.add(footerPanel, BorderLayout.SOUTH);
+
         add(root);
         setVisible(true);
         nameInput.requestFocusInWindow();

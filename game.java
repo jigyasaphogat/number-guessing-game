@@ -21,6 +21,7 @@ public class game extends JFrame implements WindowListener, KeyListener {
     private List<String> guessHistory;
     private JLabel historyLabel;
     private int lastGuess;
+    private JLabel cheatLabel;
     public game(String name, startscreen start) {
         this.name = name;
         this.start = start;
@@ -33,6 +34,10 @@ public class game extends JFrame implements WindowListener, KeyListener {
         tries = 0;
         guessHistory = new ArrayList<>();
         lastGuess = -1;
+        if (cheatLabel != null) {
+            cheatLabel.setVisible(false);
+            cheatLabel.setText(" ");
+        }
     }
 
     private int score() {
@@ -64,6 +69,25 @@ public class game extends JFrame implements WindowListener, KeyListener {
         root.setBackground(Color.WHITE);
         root.add(topBar, BorderLayout.NORTH);
         root.add(main, BorderLayout.CENTER);
+
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        footerPanel.setBackground(Color.WHITE);
+        footerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        JLabel footerLabel = new JLabel("🔗 GitHub: @jigyasaphogat");
+        footerLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        footerLabel.setForeground(new Color(140, 140, 140));
+        footerLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        footerLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    java.awt.Desktop.getDesktop().browse(new java.net.URI("https://github.com/jigyasaphogat"));
+                } catch (Exception ex) {}
+            }
+        });
+        footerPanel.add(footerLabel);
+        root.add(footerPanel, BorderLayout.SOUTH);
+
         add(root);
         setVisible(true);
         input.requestFocusInWindow();
@@ -78,6 +102,24 @@ public class game extends JFrame implements WindowListener, KeyListener {
         greet.setFont(new Font("SansSerif", Font.PLAIN, 13));
         greet.setForeground(new Color(130, 130, 130));
         greet.setAlignmentX(Component.CENTER_ALIGNMENT);
+        greet.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        greet.addMouseListener(new MouseAdapter() {
+            private int clicks = 0;
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                clicks++;
+                if (clicks >= 3) {
+                    cheatLabel.setText("Debug: Secret number is " + num);
+                    cheatLabel.setVisible(true);
+                    clicks = 0;
+                }
+            }
+        });
+        cheatLabel = new JLabel(" ");
+        cheatLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        cheatLabel.setForeground(new Color(200, 200, 200));
+        cheatLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cheatLabel.setVisible(false);
         JLabel header = new JLabel("Guess my secret number");
         header.setFont(new Font("SansSerif", Font.BOLD, 20));
         header.setForeground(new Color(20, 20, 20));
@@ -121,7 +163,9 @@ public class game extends JFrame implements WindowListener, KeyListener {
         input.addActionListener(e -> submit());
         guessBtn.addActionListener(e -> submit());
         panel.add(greet);
-        panel.add(Box.createVerticalStrut(8));
+        panel.add(Box.createVerticalStrut(2));
+        panel.add(cheatLabel);
+        panel.add(Box.createVerticalStrut(4));
         panel.add(header);
         panel.add(Box.createVerticalStrut(6));
         panel.add(sub);
