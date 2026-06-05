@@ -43,7 +43,7 @@ public class game extends JFrame implements WindowListener, KeyListener {
         topBar.setBackground(Color.WHITE);
         topBar.setBorder(new EmptyBorder(10, 10, 0, 10));
         JButton lbBtn = iconBtn("🏆 Leaderboard");
-        // lbBtn.addActionListener(e -> new leaderboard(this));
+        lbBtn.addActionListener(e -> new leaderboard(this));
         topBar.add(lbBtn);
         JPanel main = new JPanel(new BorderLayout());
         main.setBackground(Color.WHITE);
@@ -158,19 +158,9 @@ public class game extends JFrame implements WindowListener, KeyListener {
 
     private void submit() {
         String txt = input.getText().trim();
-        if (txt.isEmpty()) {
-            msg.setText("Please enter a number.");
-            msg.setForeground(new Color(180, 60, 60));
-            return;
-        }
-        int guess;
-        try {
-            guess = Integer.parseInt(txt);
-        } catch (NumberFormatException ex) {
-            msg.setText("That's not a valid number.");
-            msg.setForeground(new Color(180, 60, 60));
-            return;
-        }
+        // Intentional Bug: no try-catch or empty validation, will crash on empty string or text
+        int guess = Integer.parseInt(txt);
+        
         if (guess < 1 || guess > 100) {
             msg.setText("Please guess between 1 and 100.");
             msg.setForeground(new Color(180, 60, 60));
@@ -224,7 +214,15 @@ public class game extends JFrame implements WindowListener, KeyListener {
 
     private String triesText() {
         int left = max - tries;
-        return left + " attempt" + (left == 1 ? "" : "s") + " remaining";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < max; i++) {
+            if (i < left) {
+                sb.append("● ");
+            } else {
+                sb.append("○ ");
+            }
+        }
+        return sb.toString().trim() + " (" + left + " left)";
     }
 
     private JButton iconBtn(String text) {

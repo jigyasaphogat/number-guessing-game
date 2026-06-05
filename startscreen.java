@@ -25,7 +25,7 @@ public class startscreen extends JFrame {
         topBar.setBackground(Color.WHITE);
         topBar.setBorder(new EmptyBorder(10, 10, 0, 10));
         JButton lbBtn = iconBtn("🏆 Leaderboard");
-        // lbBtn.addActionListener(e -> new leaderboard(this));
+        lbBtn.addActionListener(e -> new leaderboard(this));
         topBar.add(lbBtn);
         JLabel title = new JLabel("Number Guessing Game");
         title.setFont(new Font("SansSerif", Font.BOLD, 22));
