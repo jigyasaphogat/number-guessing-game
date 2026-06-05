@@ -2,6 +2,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class game extends JFrame implements WindowListener, KeyListener {
     private String name;
@@ -16,6 +18,9 @@ public class game extends JFrame implements WindowListener, KeyListener {
     private JTextField input;
     private JLabel endTitle;
     private JLabel endSub;
+    private List<String> guessHistory;
+    private JLabel historyLabel;
+    private int lastGuess;
     public game(String name, startscreen start) {
         this.name = name;
         this.start = start;
@@ -26,6 +31,8 @@ public class game extends JFrame implements WindowListener, KeyListener {
     private void reset() {
         num = (int) (Math.random() * 100) + 1;
         tries = 0;
+        guessHistory = new ArrayList<>();
+        lastGuess = -1;
     }
 
     private int score() {
@@ -98,6 +105,10 @@ public class game extends JFrame implements WindowListener, KeyListener {
         msg.setFont(new Font("SansSerif", Font.PLAIN, 14));
         msg.setForeground(new Color(80, 80, 80));
         msg.setAlignmentX(Component.CENTER_ALIGNMENT);
+        historyLabel = new JLabel("Guesses: None");
+        historyLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        historyLabel.setForeground(new Color(140, 140, 140));
+        historyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         JButton guessBtn = new JButton("Submit Guess");
         guessBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
         guessBtn.setBackground(new Color(30, 30, 30));
@@ -120,6 +131,8 @@ public class game extends JFrame implements WindowListener, KeyListener {
         panel.add(input);
         panel.add(Box.createVerticalStrut(12));
         panel.add(msg);
+        panel.add(Box.createVerticalStrut(6));
+        panel.add(historyLabel);
         panel.add(Box.createVerticalStrut(16));
         panel.add(guessBtn);
         return panel;
@@ -158,14 +171,12 @@ public class game extends JFrame implements WindowListener, KeyListener {
 
     private void submit() {
         String txt = input.getText().trim();
-        // Fix: check if input is empty
         if (txt.isEmpty()) {
             msg.setText("Please enter a number.");
             msg.setForeground(new Color(180, 60, 60));
             return;
         }
         int guess;
-        // Fix: catch NumberFormatException on invalid inputs
         try {
             guess = Integer.parseInt(txt);
         } catch (NumberFormatException ex) {
@@ -179,23 +190,75 @@ public class game extends JFrame implements WindowListener, KeyListener {
             input.setText("");
             return;
         }
+        // Check duplicate guess
+        boolean alreadyGuessed = false;
+        for (String h : guessHistory) {
+            if (h.startsWith(guess + "↑") || h.startsWith(guess + "↓")) {
+                alreadyGuessed = true;
+                break;
+            }
+        }
+        if (alreadyGuessed) {
+            msg.setText("You already guessed " + guess + "!");
+            msg.setForeground(new Color(180, 60, 60));
+            input.setText("");
+            input.requestFocusInWindow();
+            return;
+        }
         tries++;
         input.setText("");
         if (guess == num) {
             finish(true);
             return;
         }
+        String direction = guess < num ? "↑" : "↓";
+        guessHistory.add(guess + direction);
+        historyLabel.setText("Guesses: " + String.join(", ", guessHistory));
         if (tries >= max) {
             finish(false);
             return;
         }
+        // Update border color based on proximity
+        if (lastGuess == -1) {
+            setInputBorderColor(new Color(210, 210, 210), 1);
+        } else {
+            int prevDiff = Math.abs(lastGuess - num);
+            int currDiff = Math.abs(guess - num);
+            if (currDiff < prevDiff) {
+                setInputBorderColor(new Color(230, 120, 40), 2); // Orange/Red (Warmer)
+            } else if (currDiff > prevDiff) {
+                setInputBorderColor(new Color(80, 140, 210), 2); // Blue (Colder)
+            }
+        }
+
         if (guess < num) {
-            msg.setText("Too low! Try higher ↑");
+            if (lastGuess == -1) {
+                msg.setText("Too low! Try higher ↑");
+            } else if (lastGuess < num) {
+                if (guess > lastGuess) {
+                    msg.setText("Getting warmer! Still too low ↑");
+                } else {
+                    msg.setText("Getting colder! Still too low ↑");
+                }
+            } else {
+                msg.setText("Now you're too low! Try higher ↑");
+            }
             msg.setForeground(new Color(60, 110, 190));
         } else {
-            msg.setText("Too high! Try lower ↓");
+            if (lastGuess == -1) {
+                msg.setText("Too high! Try lower ↓");
+            } else if (lastGuess > num) {
+                if (guess < lastGuess) {
+                    msg.setText("Getting warmer! Still too high ↓");
+                } else {
+                    msg.setText("Getting colder! Still too high ↓");
+                }
+            } else {
+                msg.setText("Now you're too high! Try lower ↓");
+            }
             msg.setForeground(new Color(200, 100, 30));
         }
+        lastGuess = guess;
         triesLabel.setText(triesText());
         input.requestFocusInWindow();
     }
@@ -205,9 +268,11 @@ public class game extends JFrame implements WindowListener, KeyListener {
         if (win) {
             endTitle.setText("You guessed it right!");
             endTitle.setForeground(new Color(30, 140, 80));
+            setInputBorderColor(new Color(30, 140, 80), 2); // Green border
         } else {
             endTitle.setText("Game over");
             endTitle.setForeground(new Color(180, 60, 60));
+            setInputBorderColor(new Color(180, 60, 60), 2); // Red border
         }
         endSub.setText("The number was " + num + ". Score: " + s + " pts");
         scores.saveScore(name, s);
@@ -218,6 +283,8 @@ public class game extends JFrame implements WindowListener, KeyListener {
         reset();
         msg.setText(" ");
         msg.setForeground(new Color(80, 80, 80));
+        historyLabel.setText("Guesses: None");
+        setInputBorderColor(new Color(210, 210, 210), 1); // Reset to default border
         triesLabel.setText(triesText());
         input.setText("");
         view.show(body, "game");
@@ -235,6 +302,13 @@ public class game extends JFrame implements WindowListener, KeyListener {
             }
         }
         return sb.toString().trim() + " (" + left + " left)";
+    }
+
+    private void setInputBorderColor(Color color, int thickness) {
+        input.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(color, thickness, true),
+            BorderFactory.createEmptyBorder(7 - thickness, 13 - thickness, 7 - thickness, 13 - thickness)
+        ));
     }
 
     private JButton iconBtn(String text) {
