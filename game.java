@@ -158,9 +158,21 @@ public class game extends JFrame implements WindowListener, KeyListener {
 
     private void submit() {
         String txt = input.getText().trim();
-        // Intentional Bug: no try-catch or empty validation, will crash on empty string or text
-        int guess = Integer.parseInt(txt);
-        
+        // Fix: check if input is empty
+        if (txt.isEmpty()) {
+            msg.setText("Please enter a number.");
+            msg.setForeground(new Color(180, 60, 60));
+            return;
+        }
+        int guess;
+        // Fix: catch NumberFormatException on invalid inputs
+        try {
+            guess = Integer.parseInt(txt);
+        } catch (NumberFormatException ex) {
+            msg.setText("That's not a valid number.");
+            msg.setForeground(new Color(180, 60, 60));
+            return;
+        }
         if (guess < 1 || guess > 100) {
             msg.setText("Please guess between 1 and 100.");
             msg.setForeground(new Color(180, 60, 60));

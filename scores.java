@@ -33,8 +33,8 @@ public class scores {
 
     public static List<String[]> loadSortedEntries() {
         List<String[]> list = loadRaw();
-        // Bug: sorting alphabetically as strings instead of numerically
-        list.sort((a, b) -> b[1].compareTo(a[1]));
+        // Fix: Sort scores numerically in descending order
+        list.sort((a, b) -> Integer.parseInt(b[1]) - Integer.parseInt(a[1]));
         return list;
     }
 
